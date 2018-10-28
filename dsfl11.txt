@@ -1,0 +1,290 @@
+#include<iostream>
+#include<fstream>
+using namespace std;
+class student
+{
+	int roll;
+	char name[20];
+	char div;
+	int age;
+	char addr[30];
+	bool dflag;
+public:
+	student();
+	virtual ~student();
+	void accept();
+	void display();
+	void filein();
+	void fileout();
+	int getroll();
+	void setdeleteflag();
+	int getdeleteflag();
+};
+student::student()
+{
+	// TODO Auto-generated constructor stub
+	roll = 0;
+	div = 0;
+	age = 0;
+	dflag = false;
+}
+
+student::~student()
+{
+	// TODO Auto-generated destructor stub
+}
+
+void student::accept()
+{
+	cout<<"\nEnter roll number: ";
+	cin>>roll;
+	cout<<"\nEnter name: ";
+	cin>>name;
+	cout<<"\nEnter division: ";
+	cin>>div;
+	cout<<"\nEnter student address ";
+	cin>>addr;
+
+}
+
+void student::display()
+{
+	cout<<"\n\t\tROLL NUMBER\t\tNAME\t\tDIV\t\tADDRESS\t\t";
+	cout<<"\n\n\t\t"<<roll<<"\t\t"<<name<<"\t\t"<<div<<"\t\t"<<addr<<"\t\t";
+}
+
+void student::fileout()
+{
+	ofstream outfile;
+	outfile.open("student.txt",ios::app|ios::binary);
+	accept();
+	outfile.write((char*)this,sizeof(*this));
+	outfile.close();
+}
+
+void student::filein()
+{
+	ifstream infile;
+	infile.open("student.txt",ios::binary);
+	if(infile.good())
+	{
+		infile.seekg(0,ios::beg);
+		while(!infile.eof())
+		{
+			student s1;
+			infile.read((char*)&s1,sizeof(s1));
+			if(!infile.eof())
+			{
+				s1.display();
+			}
+		}
+	}
+
+}
+
+void student::setdeleteflag()
+{
+	dflag=true;
+}
+
+int student::getdeleteflag()
+{
+	return dflag;
+}
+int student::getroll()
+{
+	return roll;
+}
+class filehandle
+{
+public:
+	filehandle();
+	virtual ~filehandle();
+	void createfile(student s);
+	void displayfile(student s);
+	int search(student s,int roll1);
+	void modify(student s,int loc);
+	void delete1(student s,int loc);
+};
+filehandle::filehandle()
+{
+	// TODO Auto-generated constructor stub
+}
+
+filehandle::~filehandle()
+{
+	// TODO Auto-generated destructor stub
+}
+
+void filehandle::createfile(student s)
+{
+	ofstream outfile;
+	outfile.open("student.txt",ios::app|ios::binary);
+	s.accept();
+	outfile.write((char*)&s, sizeof(s));
+	outfile.close();
+}
+
+void filehandle::displayfile(student s)
+{
+	ifstream infile;
+
+	infile.open("student.txt", ios::binary);
+
+	if(infile.good())
+	{
+		infile.seekg(0, ios::beg);
+		while(!infile.eof())
+		{
+			infile.read((char*)&s, sizeof(s));
+			if(!infile.eof())
+			{
+				s.display();
+			}
+		}
+	}
+	infile.close();
+}
+
+int filehandle::search(student s, int roll1)
+{
+	int cnt = 0;
+	int flag = -1;
+	ifstream infile;
+	infile.open("student.txt", ios::binary);
+	if(infile.good())
+	{
+		infile.seekg(0, ios::beg);
+		while(!infile.eof())
+		{
+			int roll2 = 0;
+			infile.read((char*)&s, sizeof(s));
+			roll2 = s.getroll();
+			if(roll2 == roll1)
+			{
+				flag = cnt;
+				break;
+			}
+			cnt ++;
+		}
+	}
+	else
+	{
+		cout<<"File not found";
+	}
+	infile.close();
+	return flag;
+}
+
+void filehandle::modify(student s,int loc)
+{
+	loc=loc*sizeof(s);
+	fstream foutin;
+	foutin.open("student.txt",ios::in|ios::out|ios::binary);
+	if(foutin.good())
+	{
+		foutin.seekg(loc,ios::beg);
+		s.accept();
+		foutin.write((char*)&s,sizeof(s));
+	}
+	else
+	{
+		cout<<"\n Error in reading";
+	}
+	foutin.close();
+}
+
+void filehandle::delete1(student s,int loc)
+{
+
+	loc=loc*sizeof(s);
+	fstream foutin;
+	foutin.open("student.txt",ios::in|ios::out|ios::binary);
+	if(foutin.good())
+	{
+		foutin.seekg(loc,ios::beg);
+		foutin.read((char*)&s,sizeof(s));
+		foutin.seekg(loc,ios::beg);
+		s.setdeleteflag();
+		foutin.write((char*)&s,sizeof(s));
+	}
+}int main(void)
+{
+	int ch = 0;
+	int roll1 = 0;
+	int rec_no = 0;
+	filehandle fh;
+	student s;
+
+	do
+	{
+		cout<<"\n\n\t\tMENU";
+		cout<<"\n1. Write a record\n2. Display Records\n3. Search a record\n4. Modify a record\n5. Delete a record\n6. Exit";
+		cout<<"\nEnter your choice: ";
+		cin>>ch;
+
+		switch(ch)
+		{
+			case 1:
+					fh.createfile(s);
+					break;
+			case 2:
+					fh.displayfile(s);
+					break;
+			case 3:
+					cout<<"\n Enter roll to be searched:";
+					cin>>roll1;
+					rec_no=fh.search(s,roll1);
+					if(rec_no>=0)
+					{
+						rec_no=rec_no*sizeof(s);
+						ifstream infile;
+						infile.open("student.txt",ios::binary);
+						if(infile.good())
+						{
+							infile.seekg(rec_no,ios::beg);
+							infile.read((char*)&s,sizeof(s));
+							s.display();
+						}
+						infile.close();
+					}
+					else
+					{
+						cout<<"\n Roll no. not in file";
+					}
+					break;
+			case 4:
+					cout<<"\nEnter the roll no. you want to modify";
+					cin>>roll1;
+					rec_no = fh.search(s, roll1);
+					if(rec_no >= 0)
+					{
+						fh.modify(s, rec_no);
+					}
+					else
+					{
+						cout<<"\nRecord not found.";
+					}
+					break;
+			case 5:
+					cout<<"\n Enter roll to be deleted:";
+					cin>>roll1;
+					rec_no=fh.search(s,roll1);
+					if(rec_no>=0)
+					{
+						fh.delete1(s,rec_no);
+						cout<<("\n Record deleted successfully");
+					}
+					else
+					{
+						cout<<"\n Record not found";
+					}
+					break;
+			case 6:
+					cout<<"Thank you!";
+					break;
+		}
+	}while(ch>0 && ch<6);
+	return 0;
+}
+
